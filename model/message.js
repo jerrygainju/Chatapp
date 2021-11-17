@@ -4,11 +4,14 @@ const Schema = mongoose.Schema;
 const messageSchema = Schema({
     // ref: 'User',
     userId: {
-        type: Schema.Types.ObjectId,
+        type: String,
         ref: 'User'
     },
-    message: String
-}, {
+    message: {
+        type: String,
+    }
+},
+ {
     timestamps: true
 });
 const message = mongoose.model('Message',messageSchema)

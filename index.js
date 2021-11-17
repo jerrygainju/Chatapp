@@ -5,7 +5,10 @@ const app = express()
 const http = require('http').createServer(app)
 const mongoose = require('mongoose');
 const User = require('./model/user')
-const Message = require('./model/message')
+const Message = require('./model/message');
+const { get } = require('http');
+const { create } = require('./model/user');
+const { Console } = require('console');
 
 
 
@@ -25,21 +28,19 @@ db.once('open', function (){
 
 // newM.save();
 
-const user = new User({
-    name: 'hero'
-});
-user.save();
 
-Message.create(
-    { userId: user._id, message: '1234'},
- (err, results) => {
+//   const user = new User({});
+//         user.save().then(()=>{
+//         });
 
-});
-Message.find({}, (e,r) => {
-    console.log('result', r)
-}).populate('userId')
+// User.create(
+//     { userId: user._id},
+//  (err, results) => {
 
-
+// });
+// User.find({ name: 'hero'}), (e,r) => {
+//     console.log('result', r)
+// })
 
 
 
@@ -56,11 +57,43 @@ const io = require('socket.io')(http)
 
 io.on('connection', (socket) => {
     console.log('Connected..')
-    socket.on('message',(msg) => {
+    socket.on('message',async (msg) => {
+       // query user where name = msg.user
+       let userId = null;
+         const usrgg = await User.findOne({ name:msg.user})
+         if(usrgg) {
+            userId = usrgg._id;
+         } else {
+       const ven = await User.create({name:msg.user})
+         console.log('ss',ven)
+         usrgg = ven._id
+         }
+
+         console.log('sss',usrgg)
+
+        // const usr = User.where({ name:msg.user});
+        // usr.findOne(function(err, User )
+        // {
+        //     if (err) return handlError(err);
+        //     if(User)
+        //     {
+        //         console.log(usr)
+        //     }
+        // })
+
+
+        // if found get id      
+        // else create user whose name msg.user, get new user id
+
+        const mesg = new Message({userId:msg.user,message:msg.message});
+        mesg.save().then(()=>{
+        });                                                     
         socket.broadcast.emit('message',msg)
     })
 })
-const port = process.env.PORT || 3000;
-app.listen(port, console.log(`listening on port ${port}...`))
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`)
+})
 
 
